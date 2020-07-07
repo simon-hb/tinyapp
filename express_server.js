@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 
 function generateRandomString() {
   let randomString = '';
@@ -16,6 +16,8 @@ function generateRandomString() {
 // generates random string for short URL
 
 app.use(bodyParser.urlencoded({extended: true}))
+app.use(cookieParser());
+//allows our server to use cookie-parser library in express
 
 app.set("view engine", "ejs");
 
@@ -78,7 +80,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL]
-  res.redirect(`/urls/`);
+  res.redirect(`/urls`);
 });
 //deletes short URL using delete button
 
@@ -86,5 +88,10 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect(`${urlDatabase[req.params.shortURL]}`);
 });
 //redirects us to long URL when clicking submit on shortURL page
+
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
+  res.redirect('/urls')
+});
 
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
