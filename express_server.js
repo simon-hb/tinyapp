@@ -81,4 +81,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 //deletes short URL using delete button
 
+app.post("/urls/:shortURL", (req, res) => {
+  res.redirect(`${urlDatabase[req.params.shortURL]}`);
+});
+//redirects us to long URL when clicking submit on shortURL page
+
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
