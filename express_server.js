@@ -67,5 +67,14 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   console.log(req.body);  // Log the POST request body to the console
   urlDatabase[shortURL] = req.body.longURL
+  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
+// must put http:// when posting longURL
+
+app.get("/u/:shortURL", (req, res) => {
+  // const longURL = ...
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+//if client makes on-existent shortURL request, goes to undefined and page doesn't load
