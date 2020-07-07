@@ -10,7 +10,8 @@ function generateRandomString() {
     randomString += r;
   }
   return randomString;
-}
+};
+// generates random string for short URL
 
 app.use(bodyParser.urlencoded({extended: true}))
 
@@ -59,6 +60,7 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
+//template Vars helps fill out incomplete ejs files so they can run
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
