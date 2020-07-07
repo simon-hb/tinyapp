@@ -4,10 +4,11 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 
 function generateRandomString() {
-  let randomString;
+  let randomString = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  const charactersLength = characters.length
   for (let i = 1; i <= 6; i++) {
-    let r = Math.random().toString(36).substring(7)
-    randomString += r;
+    randomString += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return randomString;
 };
@@ -63,6 +64,8 @@ app.get("/urls/:shortURL", (req, res) => {
 //template Vars helps fill out incomplete ejs files so they can run
 
 app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
   console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  urlDatabase[shortURL] = req.body.longURL
+  res.redirect(`/urls/${shortURL}`);
 });
