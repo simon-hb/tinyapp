@@ -26,6 +26,7 @@ const urlDatabase = {
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
+//this is the home page. ex: http://www.google.com/ <=just one slash at the end
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
