@@ -27,10 +27,6 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -77,3 +73,5 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 //if client makes on-existent shortURL request, goes to undefined and page doesn't load
+
+app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
