@@ -75,4 +75,9 @@ app.get("/u/:shortURL", (req, res) => {
 });
 //if client makes on-existent shortURL request, goes to undefined and page doesn't load
 
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL]
+  res.redirect(`/urls/`);
+});
+
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
