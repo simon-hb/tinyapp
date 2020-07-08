@@ -45,19 +45,19 @@ app.get("/", (req, res) => {
 //this is the home page. ex: http://www.google.com/ <=just one slash at the end
 
  app.get("/urls", (req, res) => {
-  let templateVars = { username: req.cookies["username"], urls: urlDatabase };
+  let templateVars = { user: users[req.cookies.user_id], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 // loads my URLs page
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = { username: req.cookies["username"] };
+  let templateVars = { user: users[req.cookies.user_id] };
   res.render("urls_new", templateVars);
 });
 //loads Create New URL page
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { username: req.cookies["username"], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  let templateVars = { user: users[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 // Loads edit page for short URLS
@@ -104,9 +104,10 @@ app.post("/logout", (req, res) => {
 //clears the cookie, logs out user
 
 app.get("/register", (req, res) => {
-  let templateVars = { username: req.cookies["username"] };
+  let templateVars = { user: users[req.cookies.user_id] };
   res.render("registration", templateVars);
 });
+//loads register page
 
 app.post("/register", (req, res) => {
   const id = generateRandomString();
@@ -115,5 +116,6 @@ app.post("/register", (req, res) => {
   res.cookie('user_id', id);
   res.redirect(`/urls/`);
 });
+//when click register on /register page, makes random id, stores email, pw, id into users object, stores id in cookie
 
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
