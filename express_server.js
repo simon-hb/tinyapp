@@ -35,16 +35,19 @@ app.get("/", (req, res) => {
   let templateVars = { username: req.cookies["username"], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
+// loads my URLs page
 
 app.get("/urls/new", (req, res) => {
   let templateVars = { username: req.cookies["username"] };
   res.render("urls_new", templateVars);
 });
+//loads Create New URL page
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { username: req.cookies["username"], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
+// Loads edit page for short URLS
 //template Vars helps fill out incomplete ejs files so they can run
 
 app.post("/urls", (req, res) => {
@@ -72,16 +75,18 @@ app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL] = req.body.longURL;
   res.redirect(`/urls/${req.params.shortURL}`);
 });
-//redirects us to long URL when clicking submit on shortURL page
+//saves shortURL link as new longURL in input
 
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
   res.redirect('/urls/')
 });
+//saves username in cookie, logs in user
 
 app.post("/logout", (req, res) => {
   res.clearCookie('username');
   res.redirect('/urls')
 });
+//clears the cookie, logs out user
 
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
