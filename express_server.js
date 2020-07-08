@@ -110,6 +110,14 @@ app.get("/register", (req, res) => {
 //loads register page
 
 app.post("/register", (req, res) => {
+  if (!req.body.email || !req.body.password) {
+    return res.status(400).send('Username and Password field both required.');
+  }
+  for (let user in users) {
+    if (users[user].email === req.body.email) {
+      return res.status(400).send('This email has already been registered for an account.');
+    }
+  }
   const id = generateRandomString();
   users[id] = req.body;
   users[id].id = id;
