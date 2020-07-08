@@ -22,8 +22,6 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
 };
 
 const users = { 
@@ -60,7 +58,7 @@ app.get("/urls/new", (req, res) => {
 //loads Create New URL page
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { user: users[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  let templateVars = { user: users[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
   res.render("urls_show", templateVars);
 });
 // Loads edit page for short URLS
@@ -69,7 +67,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   console.log(req.body);  // Log the POST request body to the console
-  urlDatabase[shortURL] = req.body.longURL
+  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies.user_id}
   res.redirect(`/urls/${shortURL}`);
 });
 //makes random short URL when creating new link
@@ -77,7 +75,7 @@ app.post("/urls", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   // const longURL = ...
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 //if client makes non-existent shortURL request, goes to undefined and page doesn't load
@@ -89,7 +87,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //deletes short URL using delete button
 
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
+  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 //saves shortURL link as new longURL in input
