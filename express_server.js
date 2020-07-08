@@ -15,6 +15,16 @@ function generateRandomString() {
 };
 // generates random string for short URL
 
+const urlsForUser = function(id) {
+  let userURLS = {};
+  for (let shortURL in urlDatabase) {
+    if (id === urlDatabase[shortURL].userID) {
+      userURLS[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return userURLS;
+};
+
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(cookieParser());
 //allows our server to use cookie-parser library in express
@@ -22,6 +32,7 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "a" }
 };
 
 const users = { 
@@ -43,7 +54,7 @@ app.get("/", (req, res) => {
 //this is the home page. ex: http://www.google.com/ <=just one slash at the end
 
  app.get("/urls", (req, res) => {
-  let templateVars = { user: users[req.cookies.user_id], urls: urlDatabase };
+  let templateVars = { user: users[req.cookies.user_id], urls: urlsForUser(req.cookies.user_id) };
   res.render("urls_index", templateVars);
 });
 // loads my URLs page
