@@ -31,23 +31,6 @@ app.get("/", (req, res) => {
 });
 //this is the home page. ex: http://www.google.com/ <=just one slash at the end
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
-app.get("/set", (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
- });
- 
- app.get("/fetch", (req, res) => {
-  res.send(`a = ${a}`);
- });
-
  app.get("/urls", (req, res) => {
   let templateVars = { username: req.cookies["username"], urls: urlDatabase };
   res.render("urls_index", templateVars);
@@ -86,13 +69,14 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //deletes short URL using delete button
 
 app.post("/urls/:shortURL", (req, res) => {
-  res.redirect(`${urlDatabase[req.params.shortURL]}`);
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  res.redirect(`/urls/${req.params.shortURL}`);
 });
 //redirects us to long URL when clicking submit on shortURL page
 
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
-  res.redirect('/urls')
+  res.redirect('/urls/')
 });
 
 app.post("/logout", (req, res) => {
