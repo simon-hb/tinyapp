@@ -89,4 +89,9 @@ app.post("/logout", (req, res) => {
 });
 //clears the cookie, logs out user
 
+app.get("/register", (req, res) => {
+  let templateVars = { username: req.cookies["username"] };
+  res.render("registration", templateVars);
+});
+
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
