@@ -91,18 +91,6 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 //saves shortURL link as new longURL in input
 
-app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username);
-  res.redirect('/urls/')
-});
-//saves username in cookie, logs in user
-
-app.post("/logout", (req, res) => {
-  res.clearCookie('username');
-  res.redirect('/urls')
-});
-//clears the cookie, logs out user
-
 app.get("/register", (req, res) => {
   let templateVars = { user: users[req.cookies.user_id] };
   res.render("registration", templateVars);
@@ -122,7 +110,7 @@ app.post("/register", (req, res) => {
   users[id] = req.body;
   users[id].id = id;
   res.cookie('user_id', id);
-  res.redirect(`/urls/`);
+  res.redirect(`/urls`);
 });
 //when click register on /register page, makes random id, stores email, pw, id into users object, stores id in cookie
 
@@ -130,6 +118,30 @@ app.get("/login", (req, res) => {
   let templateVars = { user: users[req.cookies.user_id] };
   res.render("login", templateVars);
 });
-//loads register page
+//loads login page
+
+app.post("/login", (req, res) => {
+  if (!req.body.email || !req.body.password) {
+    return res.status(400).send('Username and Password field both required.');
+  }
+  for (let user in users) {
+    if (users[user].email === req.body.email) {
+      if (users[user].password === req.body.password) {
+        res.cookie('user_id', users[user].id);
+        res.redirect(`/urls`)
+      } else {
+        return res.status(403).send('The inputted password for this email is incorrect.');
+      }
+    }
+  }
+  return res.status(403).send('The inputted password for this email is incorrect.');
+});
+//log in page post functionality
+
+app.post("/logout", (req, res) => {
+  res.clearCookie('user_id');
+  res.redirect('/urls')
+});
+//clears the cookie, logs out user
 
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
