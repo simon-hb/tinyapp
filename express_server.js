@@ -69,7 +69,13 @@ app.get("/urls/new", (req, res) => {
 //loads Create New URL page
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { user: users[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
+  let templateVars;
+  if (users[req.cookies.user_id]) {
+    templateVars = { user: users[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userCheckOne: users[req.cookies.user_id].id, userCheckTwo: urlDatabase[req.params.shortURL].userID };
+  } else {
+    templateVars = { user: users[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
+  }
+
   res.render("urls_show", templateVars);
 });
 // Loads edit page for short URLS
