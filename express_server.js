@@ -51,6 +51,9 @@ app.get("/", (req, res) => {
 // loads my URLs page
 
 app.get("/urls/new", (req, res) => {
+  if(!req.cookies.user_id) {
+    return res.redirect('/login');
+  }
   let templateVars = { user: users[req.cookies.user_id] };
   res.render("urls_new", templateVars);
 });
