@@ -126,4 +126,10 @@ app.post("/register", (req, res) => {
 });
 //when click register on /register page, makes random id, stores email, pw, id into users object, stores id in cookie
 
+app.get("/login", (req, res) => {
+  let templateVars = { user: users[req.cookies.user_id] };
+  res.render("login", templateVars);
+});
+//loads register page
+
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
