@@ -6,13 +6,13 @@ const cookieParser = require('cookie-parser');
 
 function generateRandomString() {
   let randomString = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  const charactersLength = characters.length
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
   for (let i = 1; i <= 6; i++) {
     randomString += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return randomString;
-};
+}
 // generates random string for short URL
 
 const urlsForUser = function(id) {
@@ -26,7 +26,7 @@ const urlsForUser = function(id) {
 };
 //returns urlDatabase containing only shortURLS created id in input
 
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 //allows our server to use cookie-parser library in express
 
@@ -37,18 +37,18 @@ const urlDatabase = {
 };
 //just testing to make sure this doesn't show up when new account
 
-const users = { 
+const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
-}
+};
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -62,7 +62,7 @@ app.get("/urls", (req, res) => {
 // loads my URLs page only if logged in
 
 app.get("/urls/new", (req, res) => {
-  if(!req.cookies.user_id) {
+  if (!req.cookies.user_id) {
     res.redirect('/login');
     return;
   }
@@ -72,8 +72,8 @@ app.get("/urls/new", (req, res) => {
 //loads Create New URL page only if logged in
 
 app.get("/urls/:shortURL", (req, res) => {
-  let currentUser = users[req.cookies.user_id]
-  let currentURLUser = urlDatabase[req.params.shortURL]
+  let currentUser = users[req.cookies.user_id];
+  let currentURLUser = urlDatabase[req.params.shortURL];
   
   let templateVars = { user: currentUser, shortURL: req.params.shortURL, longURL: currentURLUser && currentURLUser.longURL, userCheckOne: currentUser && currentUser.id, userCheckTwo: currentURLUser && currentURLUser.userID };
 
@@ -84,7 +84,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies.user_id}
+  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies.user_id};
   res.redirect(`/urls/${shortURL}`);
 });
 //makes random short URL when creating new link
@@ -98,17 +98,17 @@ app.get("/u/:shortURL", (req, res) => {
 //loads longURL for the shortURL
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if(req.cookies.user_id === urlDatabase[req.params.shortURL].userID) {
-    delete urlDatabase[req.params.shortURL]
+  if (req.cookies.user_id === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
   }
   res.redirect(`/urls`);
 });
 //deletes short URL using delete button  only if logged in user created the shortURL
 
 app.post("/urls/:shortURL", (req, res) => {
-  if(req.cookies.user_id === urlDatabase[req.params.shortURL].userID) {
+  if (req.cookies.user_id === urlDatabase[req.params.shortURL].userID) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-  } 
+  }
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 //saves shortURL link as new longURL in input only if logged in user created the shortURL
@@ -153,7 +153,7 @@ app.post("/login", (req, res) => {
     if (users[user].email === req.body.email) {
       if (users[user].password === req.body.password) {
         res.cookie('user_id', users[user].id);
-        res.redirect(`/urls`)
+        res.redirect(`/urls`);
       } else {
         res.status(403).send('The inputted password for this email is incorrect.');
         return;
@@ -166,7 +166,7 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
-  res.redirect('/urls')
+  res.redirect('/urls');
 });
 //clears the cookie, logs out user
 
