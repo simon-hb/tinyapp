@@ -2,7 +2,8 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
+//const cookieParser = require('cookie-parser'); NO LONGER USE COOKI PARSER
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 const generateRandomString = function() {
@@ -28,8 +29,12 @@ const urlsForUser = function(id) {
 //returns urlDatabase containing only shortURLS created id in input
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
-//allows our server to use cookie-parser library in express
+//app.use(cookieParser()); NO LONGER USE COOKIE PARSER
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}));
+//allows our server to use cookie-sessionlibrary in express
 
 app.set("view engine", "ejs");
 
@@ -57,23 +62,23 @@ app.get("/", (req, res) => {
 //this is the home page. ex: http://www.google.com/ <=just one slash at the end
 
 app.get("/urls", (req, res) => {
-  let templateVars = { user: users[req.cookies.user_id], urls: urlsForUser(req.cookies.user_id) };
+  let templateVars = { user: users[req.session.user_id], urls: urlsForUser(req.session.user_id) };
   res.render("urls_index", templateVars);
 });
 // loads my URLs page only if logged in
 
 app.get("/urls/new", (req, res) => {
-  if (!req.cookies.user_id) {
+  if (!req.session.user_id) {
     res.redirect('/login');
     return;
   }
-  let templateVars = { user: users[req.cookies.user_id] };
+  let templateVars = { user: users[req.session.user_id] };
   res.render("urls_new", templateVars);
 });
 //loads Create New URL page only if logged in
 
 app.get("/urls/:shortURL", (req, res) => {
-  let currentUser = users[req.cookies.user_id];
+  let currentUser = users[req.session.user_id];
   let currentURLUser = urlDatabase[req.params.shortURL];
   
   let templateVars = { user: currentUser, shortURL: req.params.shortURL, longURL: currentURLUser && currentURLUser.longURL, userCheckOne: currentUser && currentUser.id, userCheckTwo: currentURLUser && currentURLUser.userID };
@@ -85,7 +90,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies.user_id};
+  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.session.user_id};
   res.redirect(`/urls/${shortURL}`);
 });
 //makes random short URL when creating new link
@@ -99,7 +104,7 @@ app.get("/u/:shortURL", (req, res) => {
 //loads longURL for the shortURL
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if (req.cookies.user_id === urlDatabase[req.params.shortURL].userID) {
+  if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
   }
   res.redirect(`/urls`);
@@ -107,7 +112,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //deletes short URL using delete button  only if logged in user created the shortURL
 
 app.post("/urls/:shortURL", (req, res) => {
-  if (req.cookies.user_id === urlDatabase[req.params.shortURL].userID) {
+  if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
   }
   res.redirect(`/urls/${req.params.shortURL}`);
@@ -115,7 +120,7 @@ app.post("/urls/:shortURL", (req, res) => {
 //saves shortURL link as new longURL in input only if logged in user created the shortURL
 
 app.get("/register", (req, res) => {
-  let templateVars = { user: users[req.cookies.user_id] };
+  let templateVars = { user: users[req.session.user_id] };
   res.render("registration", templateVars);
 });
 //loads register page
@@ -137,13 +142,14 @@ app.post("/register", (req, res) => {
   users[id].email = req.body.email;
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
   users[id].password = hashedPassword;
-  res.cookie('user_id', id);
+  console.log(users);
+  req.session.user_id = id;
   res.redirect(`/urls`);
 });
-//when click register on /register page, makes random id, stores email, pw, id into users object, stores id in cookie
+//when click register on /register page, makes random id, stores email, HASHED pw, id into users object, stores id in cookie
 
 app.get("/login", (req, res) => {
-  let templateVars = { user: users[req.cookies.user_id] };
+  let templateVars = { user: users[req.session.user_id] };
   res.render("login", templateVars);
 });
 //loads login page
@@ -156,7 +162,7 @@ app.post("/login", (req, res) => {
   for (let user in users) {
     if (users[user].email === req.body.email) {
       if (bcrypt.compareSync(req.body.password, users[user].password)) {
-        res.cookie('user_id', users[user].id);
+        req.session.user_id = users[user].id;
         res.redirect(`/urls`);
       } else {
         res.status(403).send('The inputted password for this email is incorrect.');
@@ -169,7 +175,7 @@ app.post("/login", (req, res) => {
 //log in page post functionality
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls');
 });
 //clears the cookie, logs out user
