@@ -28,6 +28,14 @@ const urlsForUser = function(id) {
 };
 //returns urlDatabase containing only shortURLS created id in input
 
+const getUserByEmail = function(email, database) {
+  for (let userId in database) {
+    if (database[userId].email === email) {
+      return database[userId];
+    }
+  }
+};
+
 app.use(bodyParser.urlencoded({extended: true}));
 //app.use(cookieParser()); NO LONGER USE COOKIE PARSER
 app.use(cookieSession({
@@ -130,11 +138,10 @@ app.post("/register", (req, res) => {
     res.status(400).send('Username and Password field both required.');
     return;
   }
-  for (let user in users) {
-    if (users[user].email === req.body.email) {
-      res.status(400).send('This email has already been registered for an account.');
-      return;
-    }
+  const user = getUserByEmail(req.body.email, users)
+  if (user) {
+    res.status(400).send('This email has already been registered for an account.');
+    return;
   }
   const id = generateRandomString();
   users[id] = {};
@@ -159,15 +166,14 @@ app.post("/login", (req, res) => {
     res.status(400).send('Username and Password field both required.');
     return;
   }
-  for (let user in users) {
-    if (users[user].email === req.body.email) {
-      if (bcrypt.compareSync(req.body.password, users[user].password)) {
-        req.session.user_id = users[user].id;
-        res.redirect(`/urls`);
-      } else {
+  const user = getUserByEmail(req.body.email, users)
+  if (user) {
+    if (bcrypt.compareSync(req.body.password, user.password)) {
+      req.session.user_id = user.id;
+      res.redirect(`/urls`);
+    } else {
         res.status(403).send('The inputted password for this email is incorrect.');
         return;
-      }
     }
   }
   res.status(403).send('The inputted password for this email is incorrect.');
