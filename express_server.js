@@ -4,7 +4,7 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 
-function generateRandomString() {
+const generateRandomString = function() {
   let randomString = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const charactersLength = characters.length;
@@ -12,7 +12,7 @@ function generateRandomString() {
     randomString += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return randomString;
-}
+};
 // generates random string for short URL
 
 const urlsForUser = function(id) {
