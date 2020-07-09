@@ -24,6 +24,7 @@ const urlsForUser = function(id) {
   }
   return userURLS;
 };
+//returns urlDatabase containing only shortURLS created id in input
 
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(cookieParser());
@@ -34,6 +35,7 @@ app.set("view engine", "ejs");
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "a" }
 };
+//just testing to make sure this doesn't show up when new account
 
 const users = { 
   "userRandomID": {
@@ -53,37 +55,35 @@ app.get("/", (req, res) => {
 });
 //this is the home page. ex: http://www.google.com/ <=just one slash at the end
 
- app.get("/urls", (req, res) => {
+app.get("/urls", (req, res) => {
   let templateVars = { user: users[req.cookies.user_id], urls: urlsForUser(req.cookies.user_id) };
   res.render("urls_index", templateVars);
 });
-// loads my URLs page
+// loads my URLs page only if logged in
 
 app.get("/urls/new", (req, res) => {
   if(!req.cookies.user_id) {
-    return res.redirect('/login');
+    res.redirect('/login');
+    return;
   }
   let templateVars = { user: users[req.cookies.user_id] };
   res.render("urls_new", templateVars);
 });
-//loads Create New URL page
+//loads Create New URL page only if logged in
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars;
-  if (users[req.cookies.user_id]) {
-    templateVars = { user: users[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userCheckOne: users[req.cookies.user_id].id, userCheckTwo: urlDatabase[req.params.shortURL].userID };
-  } else {
-    templateVars = { user: users[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
-  }
+  let currentUser = users[req.cookies.user_id]
+  let currentURLUser = urlDatabase[req.params.shortURL]
+  
+  let templateVars = { user: currentUser, shortURL: req.params.shortURL, longURL: currentURLUser && currentURLUser.longURL, userCheckOne: currentUser && currentUser.id, userCheckTwo: currentURLUser && currentURLUser.userID };
 
   res.render("urls_show", templateVars);
 });
-// Loads edit page for short URLS
+// Loads edit page for short URLS only if logged in user created the shortURL
 //template Vars helps fill out incomplete ejs files so they can run
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  console.log(req.body);  // Log the POST request body to the console
   urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies.user_id}
   res.redirect(`/urls/${shortURL}`);
 });
@@ -95,19 +95,23 @@ app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
-//if client makes non-existent shortURL request, goes to undefined and page doesn't load
+//loads longURL for the shortURL
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL]
+  if(req.cookies.user_id === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL]
+  }
   res.redirect(`/urls`);
 });
-//deletes short URL using delete button
+//deletes short URL using delete button  only if logged in user created the shortURL
 
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+  if(req.cookies.user_id === urlDatabase[req.params.shortURL].userID) {
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+  } 
   res.redirect(`/urls/${req.params.shortURL}`);
 });
-//saves shortURL link as new longURL in input
+//saves shortURL link as new longURL in input only if logged in user created the shortURL
 
 app.get("/register", (req, res) => {
   let templateVars = { user: users[req.cookies.user_id] };
@@ -117,11 +121,13 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {
-    return res.status(400).send('Username and Password field both required.');
+    res.status(400).send('Username and Password field both required.');
+    return;
   }
   for (let user in users) {
     if (users[user].email === req.body.email) {
-      return res.status(400).send('This email has already been registered for an account.');
+      res.status(400).send('This email has already been registered for an account.');
+      return;
     }
   }
   const id = generateRandomString();
@@ -140,7 +146,8 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   if (!req.body.email || !req.body.password) {
-    return res.status(400).send('Username and Password field both required.');
+    res.status(400).send('Username and Password field both required.');
+    return;
   }
   for (let user in users) {
     if (users[user].email === req.body.email) {
@@ -148,11 +155,12 @@ app.post("/login", (req, res) => {
         res.cookie('user_id', users[user].id);
         res.redirect(`/urls`)
       } else {
-        return res.status(403).send('The inputted password for this email is incorrect.');
+        res.status(403).send('The inputted password for this email is incorrect.');
+        return;
       }
     }
   }
-  return res.status(403).send('The inputted password for this email is incorrect.');
+  res.status(403).send('The inputted password for this email is incorrect.');
 });
 //log in page post functionality
 
