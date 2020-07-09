@@ -2,10 +2,10 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-//const cookieParser = require('cookie-parser'); NO LONGER USE COOKI PARSER
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const {generateRandomString, urlsForUser, getUserByEmail, urlDatabase, users } = require('./helpers')
+const {generateRandomString, urlsForUser, getUserByEmail, urlDatabase, users } = require('./helpers');
+//no libraries and functions we need
 
 app.use(bodyParser.urlencoded({extended: true}));
 //app.use(cookieParser()); NO LONGER USE COOKIE PARSER
@@ -16,9 +16,14 @@ app.use(cookieSession({
 //allows our server to use cookie-sessionlibrary in express
 
 app.set("view engine", "ejs");
+//how our brwoser will view the page
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if (!req.session.user_id) {
+    res.redirect('/login');
+    return;
+  }
+  res.redirect('/urls');
 });
 //this is the home page. ex: http://www.google.com/ <=just one slash at the end
 
@@ -49,6 +54,16 @@ app.get("/urls/:shortURL", (req, res) => {
 // Loads edit page for short URLS only if logged in user created the shortURL
 //template Vars helps fill out incomplete ejs files so they can run
 
+app.get("/u/:shortURL", (req, res) => {
+  if (urlDatabase[req.params.shortURL]) {
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+    return;
+  }
+  res.status(400).send('This short URL does not exist');
+});
+//loads longURL for the shortURL
+
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.session.user_id};
@@ -56,13 +71,6 @@ app.post("/urls", (req, res) => {
 });
 //makes random short URL when creating new link
 // must put http:// when posting longURL
-
-app.get("/u/:shortURL", (req, res) => {
-  // const longURL = ...
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
-});
-//loads longURL for the shortURL
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
@@ -76,9 +84,11 @@ app.post("/urls/:shortURL", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
   }
-  res.redirect(`/urls/${req.params.shortURL}`);
+  res.redirect(`/urls`);
 });
 //saves shortURL link as new longURL in input only if logged in user created the shortURL
+
+//organized by URLshortening functions and user functions. Get, Post, Listen.
 
 app.get("/register", (req, res) => {
   let templateVars = { user: users[req.session.user_id] };
@@ -86,12 +96,18 @@ app.get("/register", (req, res) => {
 });
 //loads register page
 
+app.get("/login", (req, res) => {
+  let templateVars = { user: users[req.session.user_id] };
+  res.render("login", templateVars);
+});
+//loads login page
+
 app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {
     res.status(400).send('Username and Password field both required.');
     return;
   }
-  const user = getUserByEmail(req.body.email, users)
+  const user = getUserByEmail(req.body.email, users);
   if (user) {
     res.status(400).send('This email has already been registered for an account.');
     return;
@@ -102,34 +118,27 @@ app.post("/register", (req, res) => {
   users[id].email = req.body.email;
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
   users[id].password = hashedPassword;
-  console.log(users);
   req.session.user_id = id;
   res.redirect(`/urls`);
 });
 //when click register on /register page, makes random id, stores email, HASHED pw, id into users object, stores id in cookie
-
-app.get("/login", (req, res) => {
-  let templateVars = { user: users[req.session.user_id] };
-  res.render("login", templateVars);
-});
-//loads login page
 
 app.post("/login", (req, res) => {
   if (!req.body.email || !req.body.password) {
     res.status(400).send('Username and Password field both required.');
     return;
   }
-  const user = getUserByEmail(req.body.email, users)
+  const user = getUserByEmail(req.body.email, users);
   if (user) {
     if (bcrypt.compareSync(req.body.password, user.password)) {
       req.session.user_id = user.id;
       res.redirect(`/urls`);
     } else {
-        res.status(403).send('The inputted password for this email is incorrect.');
-        return;
+      res.status(403).send('The inputted password for this email is incorrect.');
+      return;
     }
   }
-  res.status(403).send('The inputted password for this email is incorrect.');
+  res.status(403).send('This email does not belong to an account.');
 });
 //log in page post functionality
 
